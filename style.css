@@ -43,7 +43,26 @@
     
 }
 
+.branding {
+  text-align: center;
+  padding: 30px 20px;
+  background-color: #f8f8f8;
+  color: #333;
+}
 
+.branding h1 {
+  font-size: 28px;
+  color: #00A86B;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 10px;
+}
+
+.branding p {
+  font-size: 16px;
+  font-weight: 500;
+  font-family: 'Roboto Mono', monospace;
+  color: #555;
+}
 
 #map{
     width: 100%;
@@ -61,7 +80,7 @@
 }
 
 footer {
-  background-color: white;
+  background-color: whitesmoke;
   color: #333;
   text-align: center;
   padding: 20px 10px;
