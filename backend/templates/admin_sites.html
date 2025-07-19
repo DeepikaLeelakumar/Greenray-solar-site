@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Site List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-edit {
+            background-color: #f39c12;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+        }
+
+        .top-links {
+            margin-bottom: 20px;
+        }
+
+        .top-links a {
+            text-decoration: none;
+            margin-right: 15px;
+            background: #2ecc71;
+            padding: 8px 15px;
+            color: white;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Plant Site List</h1>
+
+    <div class="top-links">
+        <a href="/add-site">➕ Add New Plant</a>
+        <a href="/logout">🚪 Logout</a>
+        <a href="/engineer">🧑‍🔧 View Engineer Dashboard</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Plant Name</th>
+                <th>Address</th>
+                <th>Capacity</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Inventor_URL</th>
+                <th>Login ID</th>
+                <th>Password</th>
+                <th>Type</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            {% for site in sites %}
+            <tr>
+                <td>{{ site[0] }}</td>
+                <td>{{ site[1] }}</td>
+                <td>{{ site[2] }}</td>
+                <td>{{ site[3] }}</td>
+                <td>{{ site[4] }}</td>
+                <td>{{ site[5] }}</td>
+                <td>{{ site[6] }}</td>
+                <td>{{ site[7] }}</td>
+                <td>{{ site[8] }}</td>
+                <td>
+                    <a href="/edit-site/{{ site[0] }}"><button class="btn btn-edit">Edit</button></a>
+                    <a href="/delete-site/{{ site[0] }}"><button class="btn btn-delete">Delete</button></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
