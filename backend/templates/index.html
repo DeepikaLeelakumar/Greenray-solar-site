@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenRay Solar-site-monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+
+</head>
+<body>
+    <nav class="navigation">
+        <div class="navbar">
+           <div class="logo">
+            <img src="{{ url_for('static', filename='assests/Screenshot 2025-07-04 112543.png') }}" />
+           </div>
+           <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="/login">Admin</a></li>
+                <li><a href="/login">Login</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+    <section class="branding">
+       <h1>Green Ray Remote Connect</h1>
+       <p>AI Powered Solar Power Plant Monitoring & Operating Software</p>
+    </section>
+    <div id="map"></div>
+    <footer>
+     <p><strong>GreenRay Technologies Pvt Ltd</strong></p>
+     <p>📍 Chennai, Tamil Nadu | 📞 +91 090030 14141</p>
+     <p>© 2025 GreenRay Technologies. All rights reserved.</p>
+    </footer>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
