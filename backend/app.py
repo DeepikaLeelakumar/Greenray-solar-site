@@ -1,9 +1,29 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import sqlite3
 import os
+from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 app.secret_key = "greeenray@secure"
+
+def load_key():
+    if not os.path.exists("secret_key"):
+        key = Fernet.generate_key()
+        with open("secret_key", "wb") as key_file:
+            key_file.write(key)
+        print("✅ secret_key file created successfully.")
+    return open("secret_key","rb").read()
+
+fernet_key = load_key()
+fernet = Fernet(fernet_key)
+
+def safe_decrypt(value):
+    try:
+        return fernet.decrypt(value.encode()).decode()
+    except Exception:
+        return value
+
+
 
 # --- Static and Homepage ---
 @app.route("/index.html")
@@ -31,6 +51,7 @@ def login():
         if user:
             session["user"] = username
             session["role"] = user[3]
+            session["id"] = user[0] 
             if session["role"] == "admin":
                 return redirect("/admin")
             elif session["role"] == "engineer":
@@ -60,8 +81,19 @@ def add_site():
         latitude = request.form["latitude"]
         longitude = request.form["longitude"]
         inverter_url = request.form["inverter_url"]
+
+        # ✅ Encrypt credentials
         login_id = request.form["login_id"]
         password = request.form["password"]
+        enc_login = fernet.encrypt(login_id.encode()).decode()
+        enc_pass = fernet.encrypt(password.encode()).decode()
+
+         # 🔒 ADD THIS CHECK HERE ✅
+        if not enc_login.startswith("gAAAA"):
+            return "Encryption failed for login_id ❌"
+        if not enc_pass.startswith("gAAAA"):
+            return "Encryption failed for password ❌"
+
         type = request.form["type"]
         image_url = request.form.get("image_url")  # Optional
 
@@ -71,12 +103,13 @@ def add_site():
                 INSERT INTO sites 
                 (name, address, capacity, latitude, longitude, inverter_url, login_id, password, type, image_url)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (name, address, capacity, latitude, longitude, inverter_url, login_id, password, type, image_url))
+            """, (name, address, capacity, latitude, longitude, inverter_url, enc_login, enc_pass, type, image_url))
             conn.commit()
 
         return redirect("/admin/sites")
 
     return render_template("add_site.html")
+
 
 # --- View Sites ---
 @app.route("/admin/sites")
@@ -87,8 +120,19 @@ def view_sites():
         cur.execute("SELECT * FROM sites")
         rows = cur.fetchall()
         conn.close()
-        return render_template("admin_sites.html", sites=rows)
+
+        # Decrypt login & password safely
+        decrypted_sites = []
+        for row in rows:
+            decrypted_row = list(row)
+            decrypted_row[7] = safe_decrypt(str(row[7]))  # login_id
+            decrypted_row[8] = safe_decrypt(str(row[8]))  # password
+            decrypted_sites.append(decrypted_row)
+
+        return render_template("admin_sites.html", sites=decrypted_sites)
+
     return redirect("/login")
+
 
 # --- Edit Site ---
 @app.route("/admin/sites/edit/<int:site_id>", methods=["GET", "POST"])
@@ -100,6 +144,18 @@ def edit_site(site_id):
     cur = conn.cursor()
 
     if request.method == "POST":
+         # 🔒 Encrypt updated credentials
+        login_id = request.form["login_id"]
+        password = request.form["password"]
+        enc_login = fernet.encrypt(login_id.encode()).decode()
+        enc_pass = fernet.encrypt(password.encode()).decode()
+
+        # ✅ Validate encryption
+        if not enc_login.startswith("gAAAA"):
+            return "Encryption failed for login_id ❌"
+        if not enc_pass.startswith("gAAAA"):
+            return "Encryption failed for password ❌"
+        
         data = (
             request.form["name"],
             request.form["address"],
@@ -107,8 +163,8 @@ def edit_site(site_id):
             request.form["latitude"],
             request.form["longitude"],
             request.form["inverter_url"],
-            request.form["login_id"],
-            request.form["password"],
+            enc_login,
+            enc_pass,
             request.form["type"],
             request.form.get("image_url"),
             site_id
@@ -151,8 +207,53 @@ def logout():
 @app.route("/engineer")
 def engineer_dashboard():
     if "user" in session and session["role"] == "engineer":
-        return render_template("engineer_map.html")
+        engineer_id = session["id"]
+
+        conn = sqlite3.connect("database/sites.db")
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM sites ")
+        rows = cur.fetchall()
+        conn.close()
+
+        sites = []
+        for row in rows:
+            site = dict(row)
+
+            # Decrypt inverter credentials using Fernet (only if they're stored encrypted)
+            try:
+                site["decrypted_username"] = fernet.decrypt(site["login_id"].encode()).decode()
+                site["decrypted_password"] = fernet.decrypt(site["password"].encode()).decode()
+            except Exception as e:
+                site["decrypted_username"] = "Invalid"
+                site["decrypted_password"] = "Invalid"
+
+            sites.append(site)
+
+        return render_template("engineer_dashboard.html", sites=sites)
+
     return redirect("/login")
+
+
+
+@app.route("/get_credentials/<int:site_id>")
+def get_credentials(site_id):
+    conn = sqlite3.connect("database/sites.db")
+    cur = conn.cursor()
+    cur.execute("SELECT login_id, password FROM sites WHERE id = ?", (site_id,))
+    row = cur.fetchone()
+    conn.close()
+
+    if row:
+        decrypted_username = fernet.decrypt(row[0].encode()).decode()
+        decrypted_password = fernet.decrypt(row[1].encode()).decode()
+        return jsonify({
+            "username": decrypted_username,
+            "password": decrypted_password
+        })
+    return jsonify({"error": "Site not found"}), 404
+
 
 @app.route("/api/sites")
 def get_sites():

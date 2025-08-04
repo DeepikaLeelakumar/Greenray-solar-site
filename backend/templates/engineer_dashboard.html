@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Engineer Dashboard - Site View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <div class="w-1/3 p-6 bg-white shadow-md overflow-y-auto">
+    <h2 class="text-2xl font-bold mb-4">Plant Site Details</h2>
+
+    {% if sites %}
+      {% for site in sites %}
+        <div class="mb-6 border-b pb-4">
+          <h3 class="text-xl font-semibold">{{ site.name }}</h3>
+          <p><strong>Address:</strong> {{ site.address }}</p>
+          <p><strong>Capacity:</strong> {{ site.capacity }} kW</p>
+          <p><strong>Type:</strong> {{ site.type }}</p>
+          <p class="mt-2">
+            <a href="{{ site.inverter_url }}"
+               class="text-blue-600 hover:underline inverter-link"
+               data-username="{{ site.decrypted_username }}"
+               data-password="{{ site.decrypted_password }}">
+              🔌 Login to Inverter
+            </a>
+          </p>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No assigned sites found.</p>
+    {% endif %}
+  </div>
+
+  <!-- Map -->
+  <div class="w-2/3 h-screen">
+    <div id="map" class="w-full h-full"></div>
+  </div>
+</div>
+
+<script>
+  const map = L.map('map').setView([11.0168, 76.9558], 7);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  const siteData = {{ sites | tojson }};
+  let bounds = [];
+
+  siteData.forEach(site => {
+    if (site.latitude && site.longitude) {
+      const marker = L.marker([site.latitude, site.longitude]).addTo(map)
+        .bindPopup(`
+          <div>
+            <strong>${site.name}</strong><br>
+            ${site.address}<br>
+            ${site.image_url ? `<img src="${site.image_url}" alt="${site.name}" width="150" style="margin-top: 5px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">` : ''}
+          </div>
+        `);
+      bounds.push([site.latitude, site.longitude]);
+    }
+  });
+
+  if (bounds.length > 0) {
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }
+
+  // Popup with credentials and copy
+  
+  function copyToClipboard(id) {
+    const text = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Copied to clipboard!");
+    }); 
+  }
+
+  function showCredentialsPopup(username, password, inverterUrl) {
+    const popup = document.createElement('div');
+    popup.id = "credentials-popup";
+    popup.innerHTML = `
+        <div style="background:#fff;padding:20px;border:1px solid #ccc;position:fixed;top:30%;left:30%;z-index:999;">
+            <h3>🔐 Inverter Credentials</h3>
+            <p><strong>Username:</strong> <span id="copy-username">${username}</span>
+                <button class = "ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-username')">Copy</button>
+            </p>
+            <p><strong>Password:</strong> <span id="copy-password">${password}</span>
+                <button class = "ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-password')">Copy</button>
+            </p>
+            <div style="text-align:right;margin-top:20px;">
+                <button class = "ml-2 px-2 py-1 bg-blue-500 text-white rounded" id="open-inverter-btn">Open Inverter</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    // ✅ Use inverterUrl passed into the function, not undefined variable
+    document.getElementById("open-inverter-btn").addEventListener("click", () => {
+        document.getElementById("credentials-popup").remove();
+        window.open(inverterUrl, '_blank');
+    });
+ }
+
+// Attach click handler to inverter links
+ document.querySelectorAll(".inverter-link").forEach(link => {
+    link.addEventListener("click", function (event) {
+        event.preventDefault();
+        const username = this.dataset.username;
+        const password = this.dataset.password;
+        const url = this.href;
+
+        showCredentialsPopup(username, password, url);
+    });
+ });
+
+
+</script>
+
+</body>
+</html>
