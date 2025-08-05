@@ -1,13 +1,95 @@
-<h2>Edit Site Details</h2>
-<form method="POST">
-    <input type="text" name="name" value="{{ site[1] }}" required><br>
-    <input type="text" name="address" value="{{ site[2] }}" required><br>
-    <input type="text" name="capacity" value="{{ site[3] }}" required><br>
-    <input type="text" name="latitude" value="{{ site[4] }}" required><br>
-    <input type="text" name="longitude" value="{{ site[5] }}" required><br>
-    <input type="text" name="inverter_url" value="{{ site[6] }}"><br>
-    <input type="text" name="login_id" value="{{ site[7] }}"><br>
-    <input type="text" name="password" value="{{ site[8] }}"><br>
-    <input type="text" name="type" value="{{ site[9] }}"><br>
-    <button type="submit">Update</button>
-</form>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Site Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #cbdaef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .edit-container {
+            background-color: whitesmoke;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin: 40px auto;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-container">
+        <h2>Edit Site Details</h2>
+        <form method="POST">
+            <input type="text" name="name" value="{{ site[1] }}" required>
+            <input type="text" name="address" value="{{ site[2] }}" required>
+            <input type="text" name="capacity" value="{{ site[3] }}" required>
+            <input type="text" name="latitude" value="{{ site[4] }}" required>
+            <input type="text" name="longitude" value="{{ site[5] }}" required>
+            <input type="text" name="inverter_url" value="{{ site[6] }}">
+            <input type="text" name="login_id" value="{{ site[7] }}">
+            <input type="text" name="password" value="{{ site[8] }}">
+            <input type="text" name="type" value="{{ site[9] }}">
+            <button type="submit">Update</button>
+        </form>
+        <a href="/admin">← Back to Admin Dashboard</a>
+    </div>
+</body>
+</html>
