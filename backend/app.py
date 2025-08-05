@@ -231,6 +231,14 @@ def engineer_dashboard():
 
             sites.append(site)
 
+
+            if site['image_url']:
+               site['image_url'] = url_for('static', filename=f'assests/{site["image_url"]}')
+            else:
+               site['image_url'] = None
+
+            sites.append(site)
+
         return render_template("engineer_dashboard.html", sites=sites)
 
     return redirect("/login")

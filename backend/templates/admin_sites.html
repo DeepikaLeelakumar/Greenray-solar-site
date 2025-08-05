@@ -106,7 +106,7 @@
             <td>{{ site[8] }}</td> <!-- Password -->
             <td>{{ site[9] }}</td> <!-- Type -->
             <td>
-                <a href="{{ url_for('edit_site', site_id=site[0]) }}" class="btn btn-edit">Edit</a>
+                <a href="{{ url_for('edit_site', site_id=site[0]) }}" class="btn btn-edit">Edit</a><br>
                 <a href="{{ url_for('delete_site', site_id=site[0]) }}" class="btn btn-delete" onclick="return confirm('Are you sure?')">Delete</a>
             </td>
         </tr>
