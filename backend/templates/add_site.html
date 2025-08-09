@@ -37,7 +37,7 @@
         }
 
         input:focus, textarea:focus {
-            border-color: #007BFF;
+            border-color: #a8ea73;
             outline: none;
         }
 
@@ -58,7 +58,7 @@
             display: block;
             text-align: center;
             margin-top: 15px;
-            color: #007BFF;
+            color: #89ef9c;
             text-decoration: none;
         }
 
@@ -80,6 +80,12 @@
             <input type="text" name="login_id" placeholder="Inverter Login ID" required>
             <input type="text" name="password" placeholder="Inverter Password" required>
             <input type="text" name="type" placeholder="Type (e.g. GIE, Groundmount)" required>
+            <div class="mb-4">
+                 <label for="image_url" class="block text-gray-700">Site Image</label>
+                 <input type="text"
+                        id="image_url"
+                        name="image_url"  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
             <button type="submit">Add Plant</button>
         </form>
         <a href="/admin">← Back to Admin Dashboard</a>

@@ -3,6 +3,7 @@ import sqlite3
 import os
 from cryptography.fernet import Fernet
 
+
 app = Flask(__name__)
 app.secret_key = "greeenray@secure"
 
@@ -20,9 +21,9 @@ fernet = Fernet(fernet_key)
 def safe_decrypt(value):
     try:
         return fernet.decrypt(value.encode()).decode()
-    except Exception:
+    except Exception as e:
+        print(f"DEBUG: safe_decrypt failed with error: {e}")
         return value
-
 
 
 # --- Static and Homepage ---
@@ -53,7 +54,8 @@ def login():
             session["role"] = user[3]
             session["id"] = user[0] 
             if session["role"] == "admin":
-                return redirect("/admin")
+                # Redirect to the working view_sites page
+                return redirect(url_for('view_sites'))
             elif session["role"] == "engineer":
                 return redirect("/engineer")
         else:
@@ -62,11 +64,14 @@ def login():
     return render_template("login.html", error=error)
 
 # --- Admin Dashboard ---
+# This function is no longer needed, as the login redirects directly to view_sites.
+# I'm keeping it as a redirect to handle any other links that might point here.
 @app.route("/admin")
 def admin_dashboard():
     if "user" in session and session["role"] == "admin":
-        return render_template("admin_panel.html")
+        return redirect(url_for('view_sites'))
     return redirect("/login")
+
 
 # --- Add Site ---
 @app.route("/add-site", methods=["GET", "POST"])
@@ -82,36 +87,40 @@ def add_site():
         longitude = request.form["longitude"]
         inverter_url = request.form["inverter_url"]
 
-        # ✅ Encrypt credentials
+        
+        # ✅ Encrypt credentials 
         login_id = request.form["login_id"]
         password = request.form["password"]
         enc_login = fernet.encrypt(login_id.encode()).decode()
         enc_pass = fernet.encrypt(password.encode()).decode()
 
-         # 🔒 ADD THIS CHECK HERE ✅
+        # 🔒 ADD THIS CHECK HERE ✅ 
         if not enc_login.startswith("gAAAA"):
             return "Encryption failed for login_id ❌"
         if not enc_pass.startswith("gAAAA"):
             return "Encryption failed for password ❌"
 
         type = request.form["type"]
-        image_url = request.form.get("image_url")  # Optional
+        image_url = request.form["image_url"]
+        
+            
 
-        with sqlite3.connect("database/sites.db", timeout=10) as conn:
-            cur = conn.cursor()
-            cur.execute("""
+        conn = sqlite3.connect("database/sites.db") 
+        cur = conn.cursor()
+        cur.execute("""
                 INSERT INTO sites 
                 (name, address, capacity, latitude, longitude, inverter_url, login_id, password, type, image_url)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (name, address, capacity, latitude, longitude, inverter_url, enc_login, enc_pass, type, image_url))
-            conn.commit()
+        conn.commit()
+        conn.close()
 
         return redirect("/admin/sites")
 
     return render_template("add_site.html")
 
 
-# --- View Sites ---
+# --- View Sites (This is the correct function) ---
 @app.route("/admin/sites")
 def view_sites():
     if "user" in session and session["role"] == "admin":
@@ -125,14 +134,13 @@ def view_sites():
         decrypted_sites = []
         for row in rows:
             decrypted_row = list(row)
-            decrypted_row[7] = safe_decrypt(str(row[7]))  # login_id
-            decrypted_row[8] = safe_decrypt(str(row[8]))  # password
+            decrypted_row[7] = safe_decrypt(row[7])  # login_id
+            decrypted_row[8] = safe_decrypt(row[8])  # password
             decrypted_sites.append(decrypted_row)
 
         return render_template("admin_sites.html", sites=decrypted_sites)
 
     return redirect("/login")
-
 
 # --- Edit Site ---
 @app.route("/admin/sites/edit/<int:site_id>", methods=["GET", "POST"])
@@ -144,7 +152,7 @@ def edit_site(site_id):
     cur = conn.cursor()
 
     if request.method == "POST":
-         # 🔒 Encrypt updated credentials
+        # 🔒 Encrypt updated credentials
         login_id = request.form["login_id"]
         password = request.form["password"]
         enc_login = fernet.encrypt(login_id.encode()).decode()
@@ -183,7 +191,7 @@ def edit_site(site_id):
     site = cur.fetchone()
     conn.close()
     return render_template("edit_site.html", site=site)
-
+    
 # --- Delete Site ---
 @app.route("/admin/sites/delete/<int:site_id>")
 def delete_site(site_id):
@@ -207,42 +215,68 @@ def logout():
 @app.route("/engineer")
 def engineer_dashboard():
     if "user" in session and session["role"] == "engineer":
-        engineer_id = session["id"]
+        print("✅ Accessing engineer dashboard.")
 
         conn = sqlite3.connect("database/sites.db")
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM sites ")
+        cur.execute("SELECT * FROM sites")
         rows = cur.fetchall()
         conn.close()
 
         sites = []
         for row in rows:
             site = dict(row)
-
-            # Decrypt inverter credentials using Fernet (only if they're stored encrypted)
+            print(f"--- Processing Site ID: {site['id']} ---")
+            
+            # Print the original, encrypted data
+            print(f"Encrypted Login ID: {site['login_id']}")
+            print(f"Encrypted Password: {site['password']}")
+            
             try:
-                site["decrypted_username"] = fernet.decrypt(site["login_id"].encode()).decode()
-                site["decrypted_password"] = fernet.decrypt(site["password"].encode()).decode()
+                # Attempt to decrypt and store the result
+                decrypted_login_id = safe_decrypt(site["login_id"])
+                decrypted_password = safe_decrypt(site["password"])
+                
+                # Check if decryption was successful
+                if decrypted_login_id == site["login_id"]:
+                    print("❌ Decryption FAILED for Login ID.")
+                else:
+                    print("✅ Decryption SUCCESSFUL for Login ID.")
+                    site["login_id"] = decrypted_login_id
+                    
+                if decrypted_password == site["password"]:
+                    print("❌ Decryption FAILED for Password.")
+                else:
+                    print("✅ Decryption SUCCESSFUL for Password.")
+                    site["password"] = decrypted_password
+                
             except Exception as e:
-                site["decrypted_username"] = "Invalid"
-                site["decrypted_password"] = "Invalid"
-
-            sites.append(site)
-
+                print(f"❌ An unexpected error occurred during decryption: {e}")
+                site["login_id"] = "Decryption Failed"
+                site["password"] = "Decryption Failed"
 
             if site['image_url']:
-               site['image_url'] = url_for('static', filename=f'assests/{site["image_url"]}')
+                site['image_url'] = url_for('static', filename=f'assests/{site["image_url"]}')
             else:
-               site['image_url'] = None
+                site['image_url'] = None
 
             sites.append(site)
+            print("---------------------------------")
 
         return render_template("engineer_dashboard.html", sites=sites)
-
+    
+    print("❌ Unauthorized access attempt to engineer dashboard.")
     return redirect("/login")
 
+# ... (Also, let's update your safe_decrypt to provide more info if it fails)
+def safe_decrypt(value):
+    try:
+        return fernet.decrypt(value.encode()).decode()
+    except Exception as e:
+        print(f"DEBUG: safe_decrypt failed with error: {e}")
+        return value
 
 
 @app.route("/get_credentials/<int:site_id>")
@@ -296,7 +330,6 @@ def get_sites():
     except Exception as e:
         print("❌ API Error:", e)
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
-
 
 
 # --- Run the App ---
