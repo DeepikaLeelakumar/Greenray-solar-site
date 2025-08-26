@@ -19,27 +19,31 @@
         Logout
       </button>
     </form>
-    <h2 class="text-2xl font-bold mb-4">Plant Site Details</h2>
-    {% if sites %}
-      {% for site in sites %}
-        <div class="mb-6 border-b pb-4">
-          <h3 class="text-xl font-semibold">{{ site.name }}</h3>
-          <p><strong>Address:</strong> {{ site.address }}</p>
-          <p><strong>Capacity:</strong> {{ site.capacity }} kW</p>
-          <p><strong>Type:</strong> {{ site.type }}</p>
-          <p class="mt-2">
-            <a href="{{ site.inverter_url }}"
-               class="text-blue-600 hover:underline inverter-link"
-               data-username="{{ site.login_id }}"
-               data-password="{{ site.password }}">
-              🔌 Login to Inverter
-            </a>
-          </p>
-        </div>
-      {% endfor %}
-    {% else %}
-      <p>No assigned sites found.</p>
-    {% endif %}
+    <h2 class="text-2xl font-bold mb-4">Plant Site Details</h2><br>
+    <input type="text" id="mySearchInput" placeholder="Search the Plant ..">
+    <ul id="mySearchList">
+      {% if sites %}
+        {% for site in sites %}
+          <div class="mb-6 border-b pb-4">
+           <li><h3 class="text-xl font-semibold">{{ site.name }}</h3>
+              <p><strong>Address:</strong> {{ site.address }}</p>
+              <p><strong>Capacity:</strong> {{ site.capacity }} kW</p>
+              <p><strong>Type:</strong> {{ site.type }}</p>
+              <p class="mt-2">
+               <a href="{{ site.inverter_url }}"
+                  class="text-blue-600 hover:underline inverter-link"
+                  data-username="{{ site.login_id }}"
+                  data-password="{{ site.password }}">
+                 🔌 Login to Inverter
+               </a>
+             </p>
+            </li>
+         </div>
+       {% endfor %}
+     {% else %}
+       <p>No assigned sites found.</p>
+     {% endif %}
+    </ul>
   </div>
   
    
@@ -125,6 +129,25 @@
         showCredentialsPopup(username, password, url);
     });
  });
+
+//search bar
+const searchInput = document.getElementById('mySearchInput');
+const searchList = document.getElementById('mySearchList');
+const listItems = searchList.getElementsByTagName('li'); // Or querySelectorAll('.search-item')
+
+searchInput.addEventListener('input', function() {
+    const searchValue = this.value.toLowerCase();
+
+    for (let i = 0; i < listItems.length; i++) {
+        const itemText = listItems[i].textContent.toLowerCase();
+
+        if (itemText.includes(searchValue)) {
+            listItems[i].style.display = 'block'; // Or 'list-item'
+        } else {
+             listItems[i].style.display = 'none';
+            }
+        }
+});
 
 
 </script>

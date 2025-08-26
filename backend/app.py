@@ -258,7 +258,11 @@ def engineer_dashboard():
                 site["password"] = "Decryption Failed"
 
             if site['image_url']:
-                site['image_url'] = url_for('static', filename=f'assests/{site["image_url"]}')
+                 if site['image_url'].startswith('http'):
+        # It's an external image URL (e.g., Imgur, Google Drive)
+                   site['image_url'] = site['image_url']
+                 else:
+                   site['image_url'] = url_for('static', filename=f'assests/{site["image_url"]}')
             else:
                 site['image_url'] = None
 
@@ -330,6 +334,7 @@ def get_sites():
     except Exception as e:
         print("❌ API Error:", e)
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
+
 
 
 # --- Run the App ---
