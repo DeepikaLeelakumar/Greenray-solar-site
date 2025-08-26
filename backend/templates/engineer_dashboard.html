@@ -9,6 +9,15 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body class="bg-gray-100">
+<!--Homesection-->
+  <section class="branding flex flex-col items-center justify-center  bg-gray-100 text-center px-4">
+       <h1 class="text-5xl font-extrabold text-green-600 mb-4">
+         Green Ray Remote Connect
+       </h1>
+       <p class="text-xl text-black-500 max-w-xl">
+         AI Powered Solar Power Plant Monitoring & Operating Software
+       </p>
+  </section>
 
 <div class="flex h-screen">
   
@@ -18,8 +27,8 @@
       <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
         Logout
       </button>
-    </form>
-    <h2 class="text-2xl font-bold mb-4">Plant Site Details</h2><br>
+    </form><br>
+    <h2 class="text-2xl font-bold mb-4">Plant Site Details</h2>
     <input type="text" id="mySearchInput" placeholder="Search the Plant ..">
     <ul id="mySearchList">
       {% if sites %}
@@ -46,10 +55,9 @@
     </ul>
   </div>
   
-   
-
+  
   <!-- Map -->
-  <div class="w-2/3 h-screen">
+  <div class="map-section w-full h-screen">
     <div id="map" class="w-full h-full"></div>
   </div>
 </div>
