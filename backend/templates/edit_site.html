@@ -72,22 +72,39 @@
         a:hover {
             text-decoration: underline;
         }
+
+        img {
+            display: block;
+            margin-top: 10px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
     <div class="edit-container">
         <h2>Edit Site Details</h2>
-        <form method="POST" >
-          <input type="text" name="name" value="{{ site['name'] }}" required>
-          <input type="text" name="address" value="{{ site['address'] }}" required>
-          <input type="number" name="capacity" value="{{ site['capacity'] }}" required>
-          <input type="number" name="latitude" value="{{ site['latitude'] }}" required>
-          <input type="number" name="longitude" value="{{ site['longitude'] }}" required>
-          <input type="text" name="inverter_url" value="{{ site['inverter_url'] }}">
-          <input type="text" name="login_id" value="{{ site['login_id'] }}">
+        <!-- ✅ Added enctype -->
+        <form method="POST" enctype="multipart/form-data">
+          <input type="text" name="name" value="{{ site.name }}" required>
+          <input type="text" name="address" value="{{ site.address }}" required>
+          <input type="text" name="capacity" value="{{ site.capacity }}" required>
+          <input type="number" step="any" name="latitude" value="{{ site.latitude }}" required>
+          <input type="number" step="any" name="longitude" value="{{ site.longitude }}" required>
+          <input type="text" name="inverter_url" value="{{ site.inverter_url }}">
+          <input type="text" name="login_id" value="{{ site.login_id }}">
           <input type="password" name="password" placeholder="Enter new password to change">
-          <input type="text" name="type" value="{{ site['type'] }}">
-          <input type="text" name="image_url" value="{{ site['image_url'] or '' }}">
+          <input type="text" name="type" value="{{ site.type }}">
+
+          <!-- ✅ File upload -->
+          <label for="image_file">Upload New Image (leave empty to keep current):</label>
+          <input type="file" name="image_file" accept="image/*">
+
+          <!-- ✅ Show current image -->
+          {% if site['image_url'] %}
+            <p>Current Image:</p>
+            <img src="{{ site.image_url }}" alt="Current Image" width="200">
+          {% endif %}
+
           <button type="submit">Update</button>
         </form>
         <a href="/admin">← Back to Admin Dashboard</a>

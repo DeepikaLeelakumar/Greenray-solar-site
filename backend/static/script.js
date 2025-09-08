@@ -31,7 +31,9 @@ fetch('/api/sites')
       `;
 
       if (site.image_url) {
-        popupContent += `<img src="/static/assests/${site.image_url}" width="200" height="150" style="margin-top: 5px;" />`;
+         popupContent += `<img src="${site.image_url}" width="200" height="150" style="margin-top: 5px;" />`;
+      }else {
+         popupContent += `<i>No image available</i>`;
       }
 
       // Add marker to map
