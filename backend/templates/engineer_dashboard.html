@@ -10,7 +10,7 @@
 </head>
 <body class="bg-gray-100">
 <!--Homesection-->
-  <section class="branding flex flex-col items-center justify-center  bg-gray-100 text-center px-4">
+  <section class="branding flex flex-col items-center justify-center bg-gray-100 text-center px-4">
        <h1 class="text-5xl font-extrabold text-green-600 mb-4">
          Green Ray Remote Connect
        </h1>
@@ -29,32 +29,36 @@
       </button>
     </form><br>
     <h2 class="text-2xl font-bold mb-4">Plant Site Details</h2>
-    <input type="text" id="mySearchInput" placeholder="Search the Plant ..">
+    <input type="text" id="mySearchInput" placeholder="Search the Plant .." class="border rounded p-2 w-full mb-4">
+
     <ul id="mySearchList">
       {% if sites %}
         {% for site in sites %}
           <div class="mb-6 border-b pb-4">
-           <li><h3 class="text-xl font-semibold">{{ site.name }}</h3>
+            <li>
+              <h3 class="text-xl font-semibold">{{ site.name }}</h3>
+              {% if site.image_url %}
+                <img src="{{ site.image_url }}" alt="{{ site.name }}" class="mt-2 mb-2 rounded shadow-md w-48">
+              {% endif %}
               <p><strong>Address:</strong> {{ site.address }}</p>
               <p><strong>Capacity:</strong> {{ site.capacity }} kW</p>
               <p><strong>Type:</strong> {{ site.type }}</p>
               <p class="mt-2">
-               <a href="{{ site.inverter_url }}"
-                  class="text-blue-600 hover:underline inverter-link"
-                  data-username="{{ site.login_id }}"
-                  data-password="{{ site.password }}">
-                 🔌 Login to Inverter
-               </a>
-             </p>
+                <a href="{{ site.inverter_url }}"
+                   class="text-blue-600 hover:underline inverter-link"
+                   data-username="{{ site.login_id }}"
+                   data-password="{{ site.password }}">
+                  🔌 Login to Inverter
+                </a>
+              </p>
             </li>
-         </div>
-       {% endfor %}
-     {% else %}
-       <p>No assigned sites found.</p>
-     {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No assigned sites found.</p>
+      {% endif %}
     </ul>
   </div>
-  
   
   <!-- Map -->
   <div class="map-section w-full h-screen">
@@ -74,15 +78,18 @@
 
   siteData.forEach(site => {
     if (site.latitude && site.longitude) {
+      const popupContent = `
+        <div style="text-align:center;">
+          <strong>${site.name}</strong><br>
+          ${site.image_url ? `<img src="${site.image_url}" alt="${site.name}" width="160" style="margin:8px 0; border-radius:6px; box-shadow:0 0 6px rgba(0,0,0,0.2);">` : `<i>No image available</i>`}
+          <br>
+          ${site.address}<br>
+          Capacity: ${site.capacity} kW<br>
+          Type: ${site.type}
+        </div>
+      `;
       const marker = L.marker([site.latitude, site.longitude]).addTo(map)
-        .bindPopup(`
-          <div>
-            <strong>${site.name}</strong><br>
-            ${site.image_url ? `<img src="${site.image_url}" alt="${site.name}" width="120"><br>` : `<i>No image available</i><br>`}
-            <br>
-            ${site.address}<br>
-          </div>
-        `);
+        .bindPopup(popupContent);
       bounds.push([site.latitude, site.longitude]);
     }
   });
@@ -91,13 +98,12 @@
     map.fitBounds(bounds, { padding: [50, 50] });
   }
 
-  // Popup with credentials and copy
-  
+  // ✅ Credentials popup
   function copyToClipboard(id) {
     const text = document.getElementById(id).innerText;
     navigator.clipboard.writeText(text).then(() => {
         alert("Copied to clipboard!");
-    }); 
+    });
   }
 
   function showCredentialsPopup(username, password, inverterUrl) {
@@ -107,57 +113,47 @@
         <div style="background:#fff;padding:20px;border:1px solid #ccc;position:fixed;top:30%;left:30%;z-index:999;">
             <h3>🔐 Inverter Credentials</h3>
             <p><strong>Username:</strong> <span id="copy-username">${username}</span>
-                <button class = "ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-username')">Copy</button>
+                <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-username')">Copy</button>
             </p>
             <p><strong>Password:</strong> <span id="copy-password">${password}</span>
-                <button class = "ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-password')">Copy</button>
+                <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-password')">Copy</button>
             </p>
             <div style="text-align:right;margin-top:20px;">
-                <button class = "ml-2 px-2 py-1 bg-blue-500 text-white rounded" id="open-inverter-btn">Open Inverter</button>
+                <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" id="open-inverter-btn">Open Inverter</button>
             </div>
         </div>
     `;
     document.body.appendChild(popup);
 
-    // ✅ Use inverterUrl passed into the function, not undefined variable
     document.getElementById("open-inverter-btn").addEventListener("click", () => {
         document.getElementById("credentials-popup").remove();
         window.open(inverterUrl, '_blank');
     });
- }
+  }
 
-// Attach click handler to inverter links
- document.querySelectorAll(".inverter-link").forEach(link => {
+  // Attach click handler to inverter links
+  document.querySelectorAll(".inverter-link").forEach(link => {
     link.addEventListener("click", function (event) {
         event.preventDefault();
         const username = this.dataset.username;
         const password = this.dataset.password;
         const url = this.href;
-
         showCredentialsPopup(username, password, url);
     });
- });
+  });
 
-//search bar
-const searchInput = document.getElementById('mySearchInput');
-const searchList = document.getElementById('mySearchList');
-const listItems = searchList.getElementsByTagName('li'); // Or querySelectorAll('.search-item')
+  // Search bar
+  const searchInput = document.getElementById('mySearchInput');
+  const searchList = document.getElementById('mySearchList');
+  const listItems = searchList.getElementsByTagName('li');
 
-searchInput.addEventListener('input', function() {
+  searchInput.addEventListener('input', function() {
     const searchValue = this.value.toLowerCase();
-
     for (let i = 0; i < listItems.length; i++) {
         const itemText = listItems[i].textContent.toLowerCase();
-
-        if (itemText.includes(searchValue)) {
-            listItems[i].style.display = 'block'; // Or 'list-item'
-        } else {
-             listItems[i].style.display = 'none';
-            }
-        }
-});
-
-
+        listItems[i].style.display = itemText.includes(searchValue) ? 'block' : 'none';
+    }
+  });
 </script>
 
 </body>

@@ -93,7 +93,6 @@ def admin_dashboard():
     if "user" in session and session["role"] == "admin":
         return redirect(url_for('view_sites'))
     return redirect("/login")
-
 @app.route("/add-site", methods=["GET", "POST"])
 def add_site():
     if "user" not in session or session["role"] != "admin":
@@ -166,42 +165,46 @@ def edit_site(site_id):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
 
-        # fetch existing row so we can preserve values if the user leaves fields blank
+        # Fetch existing row
         cur.execute("SELECT * FROM sites WHERE id=?", (site_id,))
         row = cur.fetchone()
         if not row:
-            return redirect("/admin/sites")  # or show a 404 / flash message
+            return redirect("/admin/sites")  # or flash("Site not found")
 
         if request.method == "POST":
-            # Keep or update image_url
+            # ✅ Handle image upload
             image_file = request.files.get("image_file")
-            image_url = request.form.get("current_image") or row["image_url"]
+            image_url = row["image_url"]  # default: keep old one
             if image_file and getattr(image_file, "filename", ""):
                 upload_result = cloudinary.uploader.upload(image_file)
                 image_url = upload_result.get("secure_url")
 
-            # Only encrypt new credentials if provided, otherwise keep DB values
+            # ✅ Handle encrypted credentials
             new_login_raw = request.form.get("login_id", "").strip()
             new_pass_raw = request.form.get("password", "").strip()
 
             if new_login_raw:
                 enc_login = fernet.encrypt(new_login_raw.encode()).decode()
             else:
-                enc_login = row["login_id"]   # keep stored encrypted value
+                enc_login = row["login_id"]  # keep old
 
             if new_pass_raw:
                 enc_pass = fernet.encrypt(new_pass_raw.encode()).decode()
             else:
-                enc_pass = row["password"]    # keep stored encrypted value
+                enc_pass = row["password"]  # keep old
 
-            # Use provided form values, falling back to existing DB values
-            name = request.form.get("name", row["name"])
-            address = request.form.get("address", row["address"])
-            capacity = request.form.get("capacity", row["capacity"])
-            latitude = request.form.get("latitude", row["latitude"])
-            longitude = request.form.get("longitude", row["longitude"])
-            inverter_url = request.form.get("inverter_url", row["inverter_url"])
-            type_val = request.form.get("type", row["type"])
+            # ✅ Preserve other fields (if blank, use DB value)
+            def get_or_keep(field):
+                val = request.form.get(field, "").strip()
+                return val if val else row[field]
+
+            name = get_or_keep("name")
+            address = get_or_keep("address")
+            capacity = get_or_keep("capacity")
+            latitude = get_or_keep("latitude")
+            longitude = get_or_keep("longitude")
+            inverter_url = get_or_keep("inverter_url")
+            type_val = get_or_keep("type")
 
             data = (
                 name, address, capacity, latitude, longitude,
@@ -217,14 +220,13 @@ def edit_site(site_id):
             conn.commit()
             return redirect("/admin/sites")
 
-        # GET: convert row to dict and decrypt values for template
+        # ✅ GET request: prepare site dict with decrypted values
         site = dict(row)
         site["login_id"] = safe_decrypt(site.get("login_id"))
-        # For security, it's common NOT to prefill the password field.
-        # If you want to display it (not recommended), decrypt it as below:
-        site["password"] = safe_decrypt(site.get("password"))
+        site["password"] = ""  # ⚠ don’t prefill password for security
 
-    return render_template("edit_site.html", site=row)
+    return render_template("edit_site.html", site=site)
+
 
 @app.route("/admin/sites/delete/<int:site_id>")
 def delete_site(site_id):
