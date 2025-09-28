@@ -5,7 +5,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #abb4f1;
+            background-color: #dfe0e5;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -85,6 +85,13 @@
                 <input type="file" name="image_file" id="image_file" accept="image/*">
 
             </div>
+            <label for="assigned_engineer">Assign Engineer:</label><br>
+            <select name="assigned_engineer" id="assigned_engineer" class="border p-2 rounded w-full">
+             <option value="">-- Select Engineer --</option><br>
+             {% for engineer in engineers %}
+                <option value="{{ engineer.id }}">{{ engineer.username }}</option>
+             {% endfor %}
+           </select>
             <button type="submit">Add Plant</button>
         </form>
         <a href="/admin">← Back to Admin Dashboard</a>

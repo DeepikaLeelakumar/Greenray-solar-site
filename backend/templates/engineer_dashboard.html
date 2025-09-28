@@ -9,57 +9,56 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body class="bg-gray-100">
-<!--Homesection-->
-  <section class="branding flex flex-col items-center justify-center bg-gray-100 text-center px-4">
-       <h1 class="text-5xl font-extrabold text-green-600 mb-4">
-         Green Ray Remote Connect
-       </h1>
-       <p class="text-xl text-black-500 max-w-xl">
-         AI Powered Solar Power Plant Monitoring & Operating Software
-       </p>
-  </section>
+
+<!-- Header / Branding -->
+<section class="branding flex flex-col items-center justify-center bg-gray-100 text-center px-4 py-6">
+  <h1 class="text-5xl font-extrabold text-green-600 mb-4">Green Ray Remote Connect</h1>
+  <p class="text-xl text-black-500 max-w-xl">AI Powered Solar Power Plant Monitoring & Operating Software</p>
+  
+</section>
 
 <div class="flex h-screen">
-  
+
   <!-- Sidebar -->
   <div class="w-1/3 p-6 bg-white shadow-md overflow-y-auto">
     <form action="{{ url_for('logout') }}" method="get">
-      <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-        Logout
-      </button>
-    </form><br>
+      <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Logout</button>
+    </form>
+
+    {% if role == "admin" %}
+      <h2 class="text-2xl font-bold mb-4 text-green-600">Engineer Dashboard (Admin View – All Sites)</h2>
+    {% else %}
+      <h2 class="text-2xl font-bold mb-4 text-blue-600">Engineer Dashboard (Assigned Sites)</h2>
+    {% endif %}
+
     <h2 class="text-2xl font-bold mb-4">Plant Site Details</h2>
     <input type="text" id="mySearchInput" placeholder="Search the Plant .." class="border rounded p-2 w-full mb-4">
 
     <ul id="mySearchList">
       {% if sites %}
         {% for site in sites %}
-          <div class="mb-6 border-b pb-4">
-            <li>
-              <h3 class="text-xl font-semibold">{{ site.name }}</h3>
-              {% if site.image_url %}
-                <img src="{{ site.image_url }}" alt="{{ site.name }}" class="mt-2 mb-2 rounded shadow-md w-48">
-              {% endif %}
-              <p><strong>Address:</strong> {{ site.address }}</p>
-              <p><strong>Capacity:</strong> {{ site.capacity }} kW</p>
-              <p><strong>Type:</strong> {{ site.type }}</p>
-              <p class="mt-2">
-                <a href="{{ site.inverter_url }}"
-                   class="text-blue-600 hover:underline inverter-link"
-                   data-username="{{ site.login_id }}"
-                   data-password="{{ site.password }}">
-                  🔌 Login to Inverter
-                </a>
-              </p>
-            </li>
-          </div>
+          <li class="mb-6 border-b pb-4">
+            <h3 class="text-xl font-semibold">{{ site.name }}</h3>
+            {% if site.image_url %}
+              <img src="{{ site.image_url }}" alt="{{ site.name }}" class="mt-2 mb-2 rounded shadow-md w-48">
+            {% endif %}
+            <p><strong>Address:</strong> {{ site.address }}</p>
+            <p><strong>Capacity:</strong> {{ site.capacity }} kW</p>
+            <p><strong>Type:</strong> {{ site.type }}</p>
+            <p class="mt-2">
+              <a href="{{ site.inverter_url }}" class="text-blue-600 hover:underline inverter-link"
+                 data-username="{{ site.login_id }}" data-password="{{ site.password }}">
+                🔌 Login to Inverter
+              </a>
+            </p>
+          </li>
         {% endfor %}
       {% else %}
         <p>No assigned sites found.</p>
       {% endif %}
     </ul>
   </div>
-  
+
   <!-- Map -->
   <div class="map-section w-full h-screen">
     <div id="map" class="w-full h-full"></div>
@@ -67,82 +66,84 @@
 </div>
 
 <script>
+  // Initialize Leaflet map
   const map = L.map('map').setView([11.0168, 76.9558], 7);
-
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
+  // Add site markers
   const siteData = {{ sites | tojson }};
   let bounds = [];
 
   siteData.forEach(site => {
-    if (site.latitude && site.longitude) {
+    const lat = parseFloat(site.latitude);
+    const lng = parseFloat(site.longitude);
+
+    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
       const popupContent = `
         <div style="text-align:center;">
           <strong>${site.name}</strong><br>
-          ${site.image_url ? `<img src="${site.image_url}" alt="${site.name}" width="160" style="margin:8px 0; border-radius:6px; box-shadow:0 0 6px rgba(0,0,0,0.2);">` : `<i>No image available</i>`}
-          <br>
+          ${site.image_url ? `<img src="${site.image_url}" alt="${site.name}" width="160" style="margin:8px 0; border-radius:6px; box-shadow:0 0 6px rgba(0,0,0,0.2);">` : `<i>No image available</i>`}<br>
           ${site.address}<br>
           Capacity: ${site.capacity} kW<br>
           Type: ${site.type}
         </div>
       `;
-      const marker = L.marker([site.latitude, site.longitude]).addTo(map)
-        .bindPopup(popupContent);
-      bounds.push([site.latitude, site.longitude]);
+      L.marker([lat, lng]).addTo(map).bindPopup(popupContent);
+      bounds.push([lat, lng]);
     }
   });
 
-  if (bounds.length > 0) {
-    map.fitBounds(bounds, { padding: [50, 50] });
-  }
+  if (bounds.length === 1) map.setView(bounds[0], 13);
+  else if (bounds.length > 1) map.fitBounds(bounds, { padding: [50, 50] });
+  else map.setView([11.0168, 76.9558], 7);
 
-  // ✅ Credentials popup
+  setTimeout(() => { map.invalidateSize(); }, 100);
+
+  // Credentials popup
   function copyToClipboard(id) {
     const text = document.getElementById(id).innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
-    });
+    navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
   }
 
   function showCredentialsPopup(username, password, inverterUrl) {
     const popup = document.createElement('div');
     popup.id = "credentials-popup";
     popup.innerHTML = `
-        <div style="background:#fff;padding:20px;border:1px solid #ccc;position:fixed;top:30%;left:30%;z-index:999;">
-            <h3>🔐 Inverter Credentials</h3>
-            <p><strong>Username:</strong> <span id="copy-username">${username}</span>
-                <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-username')">Copy</button>
-            </p>
-            <p><strong>Password:</strong> <span id="copy-password">${password}</span>
-                <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-password')">Copy</button>
-            </p>
-            <div style="text-align:right;margin-top:20px;">
-                <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" id="open-inverter-btn">Open Inverter</button>
-            </div>
+      <div style="background:#fff;padding:20px;border:1px solid #ccc;position:fixed;top:30%;left:30%;z-index:999;">
+        <h3>🔐 Inverter Credentials</h3>
+        <p><strong>Username:</strong> <span id="copy-username">${username}</span>
+          <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-username')">Copy</button>
+        </p>
+        <p><strong>Password:</strong> <span id="copy-password">${password}</span>
+          <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" onclick="copyToClipboard('copy-password')">Copy</button>
+        </p>
+        <div style="text-align:right;margin-top:20px;">
+          <button class="ml-2 px-2 py-1 bg-blue-500 text-white rounded" id="open-inverter-btn">Open Inverter</button>
         </div>
+      </div>
     `;
     document.body.appendChild(popup);
 
     document.getElementById("open-inverter-btn").addEventListener("click", () => {
-        document.getElementById("credentials-popup").remove();
-        window.open(inverterUrl, '_blank');
+      document.getElementById("credentials-popup").remove();
+      window.open(inverterUrl, '_blank');
     });
   }
 
   // Attach click handler to inverter links
   document.querySelectorAll(".inverter-link").forEach(link => {
     link.addEventListener("click", function (event) {
-        event.preventDefault();
-        const username = this.dataset.username;
-        const password = this.dataset.password;
-        const url = this.href;
-        showCredentialsPopup(username, password, url);
+      event.preventDefault();
+      const username = this.dataset.username;
+      const password = this.dataset.password;
+      const url = this.href;
+      showCredentialsPopup(username, password, url);
     });
   });
 
-  // Search bar
+  // Search bar functionality
   const searchInput = document.getElementById('mySearchInput');
   const searchList = document.getElementById('mySearchList');
   const listItems = searchList.getElementsByTagName('li');
@@ -150,8 +151,8 @@
   searchInput.addEventListener('input', function() {
     const searchValue = this.value.toLowerCase();
     for (let i = 0; i < listItems.length; i++) {
-        const itemText = listItems[i].textContent.toLowerCase();
-        listItems[i].style.display = itemText.includes(searchValue) ? 'block' : 'none';
+      const itemText = listItems[i].textContent.toLowerCase();
+      listItems[i].style.display = itemText.includes(searchValue) ? 'block' : 'none';
     }
   });
 </script>

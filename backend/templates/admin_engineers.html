@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engineers List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 80%;
+            margin: 0 auto 30px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #e8f5e9;
+        }
+
+        a.btn {
+            display: inline-block;
+            margin: 5px 10px;
+            padding: 10px 18px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        a.btn:hover {
+            background-color: #45a049;
+        }
+
+        .actions a {
+            margin-right: 10px;
+            padding: 6px 12px;
+            background-color: #f44336;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .actions a:hover {
+            background-color: #d32f2f;
+        }
+
+        .buttons {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+   <h2>Engineers List</h2>
+   <table border="1"> 
+      <tr>
+       <th>Username</th>
+       <th>Password</th>
+       <th>Action</th>
+      </tr>
+       {% for eng in engineers %}
+      <tr>
+       <td>{{ eng['username'] }}</td>
+       <td>{{ eng['password'] }}</td>
+       <td>
+           <a href="{{ url_for('delete_engineer', engineer_id=eng['id']) }}" onclick="return confirm('Are you sure?')">Delete</a>
+       </td>
+      </tr>
+      {% endfor %}
+   </table>
+   <button 
+     style="padding:10px 20px; margin:5px; background-color:#4CAF50; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); transition:all 0.3s ease;"
+     onmouseover="this.style.backgroundColor='#45a049'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.25)';"
+     onmouseout="this.style.backgroundColor='#4CAF50'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 5px rgba(0,0,0,0.2)';"
+     onclick="location.href='{{ url_for('show_add_engineer_form') }}'">
+     ➕ Add New Engineer
+   </button>
+
+   <button 
+     style="padding:10px 20px; margin:5px; background-color:#2196F3; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); transition:all 0.3s ease;"
+     onmouseover="this.style.backgroundColor='#1976D2'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.25)';"
+     onmouseout="this.style.backgroundColor='#2196F3'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 5px rgba(0,0,0,0.2)';"
+     onclick="location.href='{{ url_for('show_assign_plants_form') }}'">
+     🌱 Assign Sites
+   </button>
+
+   
+   
+   
+
+</body>

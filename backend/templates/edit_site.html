@@ -104,6 +104,14 @@
             <p>Current Image:</p>
             <img src="{{ site.image_url }}" alt="Current Image" width="200">
           {% endif %}
+         <br><br>
+         <label for="assigned_engineer">Assign Engineer:</label>
+         <select name="assigned_engineer" id="assigned_engineer" class="border p-2 rounded w-full">
+           <option value="">-- Select Engineer --</option>
+           {% for engineer in engineers %}
+             <option value="{{ engineer.id }}">{{ engineer.username }}</option>
+           {% endfor %}
+         </select>
 
           <button type="submit">Update</button>
         </form>
