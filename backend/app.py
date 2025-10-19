@@ -12,30 +12,37 @@ import random, string
 def generate_password(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
+# -------------------------
+# 1️⃣ SECRET_KEY (Flask sessions)
+# -------------------------
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    raise Exception(
+        "⚠ SECRET_KEY not set! Add it in Railway Shared Variables."
+    )
 
-app = Flask(__name__)
-# ------------------ FLASK SECRET KEY ------------------
-# For sessions/cookies
-app.SECRET_KEY = os.environ.get("SECRET_KEY")
-if not app.SECRET_KEY:
-    raise Exception("⚠ SECRET_KEY not set in environment! Add it in Railway Shared Variables.")
-    
-# ------------------ FERNET ENCRYPTION ------------------
+# -------------------------
+# 2️⃣ FERNET_KEY (for encrypt/decrypt credentials)
+# -------------------------
 FERNET_KEY = os.environ.get("FERNET_KEY")
 if not FERNET_KEY:
-    raise Exception("⚠ FERNET_KEY not set in environment! Add your existing secret_key contents to Railway.")
-    
+    raise Exception(
+        "⚠ FERNET_KEY not set! Add it in Railway Shared Variables."
+    )
+
 fernet = Fernet(FERNET_KEY.encode())
 
-def safe_decrypt(value):
-    """Safely decrypt values and log failures."""
-    if not value:
-        return value
-    try:
-        return fernet.decrypt(value.encode()).decode()
-    except Exception as e:
-        print(f"❌ Decrypt failed: {e}")
-        return value  # fallback
+
+app = Flask(__name__)
+app.secret_key = SECRET_KEY
+
+# 4️⃣ Example usage of Fernet
+# -------------------------
+def encrypt_password(password: str) -> str:
+    return fernet.encrypt(password.encode()).decode()
+
+def decrypt_password(token: str) -> str:
+    return fernet.decrypt(token.encode()).decode()
 
 # ------------------ CLOUDINARY CONFIG ------------------
 CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL")
