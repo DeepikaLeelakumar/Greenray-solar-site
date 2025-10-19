@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add New Solar Site</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #dfe0e5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .form-container {
+            background-color: whitesmoke;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #a8ea73;
+            outline: none;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #89ef9c;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Add New Plant Site</h2>
+        <form action="{{ url_for('add_site') }}" method="POST" enctype="multipart/form-data">
+            <input type="text" name="name" placeholder="Site Name" required>
+            <textarea name="address" placeholder="Address" required></textarea>
+            <input type="text" name="capacity" placeholder="Capacity (kW)" required>
+            <input type="text" name="latitude" placeholder="Latitude" required>
+            <input type="text" name="longitude" placeholder="Longitude" required>
+            <input type="text" name="inverter_url" placeholder="Inverter URL" required>
+            <input type="text" name="login_id" placeholder="Inverter Login ID" required>
+            <input type="text" name="password" placeholder="Inverter Password" required>
+            <input type="text" name="type" placeholder="Type (e.g. GIE, Groundmount)" required>
+            <div class="mb-4">
+                 <label for="image_file">Upload Site Image:</label>
+                <input type="file" name="image_file" id="image_file" accept="image/*">
+
+            </div>
+            <label for="assigned_engineer">Assign Engineer:</label><br>
+            <select name="assigned_engineer" id="assigned_engineer" class="border p-2 rounded w-full">
+             <option value="">-- Select Engineer --</option><br>
+             {% for engineer in engineers %}
+                <option value="{{ engineer.id }}">{{ engineer.username }}</option>
+             {% endfor %}
+           </select>
+            <button type="submit">Add Plant</button>
+        </form>
+        <a href="/admin">← Back to Admin Dashboard</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+.env
+*.env
+# DB + secrets
+backend/database/sites.db
+backend/secret_key
+/etc/greenray.env
+# IDE
+.vscode/
+.idea/

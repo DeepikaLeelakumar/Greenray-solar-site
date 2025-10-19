@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Assign Site to Engineer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            width: 450px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+        label {
+            display: block;
+            margin: 15px 0 8px;
+            font-weight: bold;
+            color: #34495e;
+            text-align: left;
+        }
+        select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+        select:focus, button:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52,152,219,0.5);
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s ease;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .checkbox-group {
+            text-align: left;
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto; /* scroll if too many sites */
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Assign Site to Engineer</h2>
+        <form method="post" action="/assign">
+
+            <label>Choose Engineer:</label>
+            <select name="engineer_id" required>
+                {% for eng in engineers %}
+                    <option value="{{ eng[0] }}">{{ eng[1] }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Assign Sites:</label>
+
+            <!-- Select All Sites checkbox -->
+            <label>
+                <input type="checkbox" id="selectAll">
+                <strong>Select All Sites</strong>
+            </label>
+
+            <div class="checkbox-group">
+                {% for site in sites %}
+                    <label>
+                        <input type="checkbox" class="site-checkbox" name="site_id" value="{{ site[0] }}">
+                        {{ site[1] }}
+                    </label>
+                {% endfor %}
+            </div>
+
+            <button type="submit">Assign Selected Sites</button>
+        </form>
+    </div>
+
+    <!-- JavaScript to handle Select All -->
+    <script>
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.site-checkbox');
+
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    </script>
+</body>
+</html>
