@@ -12,31 +12,18 @@ import random, string
 def generate_password(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
-# ------------------ CONFIG ------------------
-
-# Cloudinary config
-cloudinary.config(
-    cloud_name="dptibaupg",
-    api_key="247993645571145",
-    api_secret="xmlSvgLNc9TpaR_dk7KttQPBL68"
-)
 
 app = Flask(__name__)
-app.secret_key = "greeenray@secure"
+# Flask secret key (sessions, cookies)
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")  # fallback for local dev
 
-# ------------------ ENCRYPTION ------------------
-
-def load_key():
-    """Load Fernet key from file or generate a new one."""
-    if not os.path.exists("secret_key"):
-        key = Fernet.generate_key()
-        with open("secret_key", "wb") as key_file:
-            key_file.write(key)
-        print("✅ secret_key file created successfully.")
-    return open("secret_key", "rb").read()
-
-fernet_key = load_key()
-fernet = Fernet(fernet_key)
+# ------------------ FERNET ENCRYPTION ------------------
+# Load Fernet key from env variable (Railway) or generate for local dev
+fernet_key = os.environ.get("FERNET_KEY")
+if not fernet_key:
+    print("⚠ FERNET_KEY not set. Generating temporary key for local dev.")
+    fernet_key = Fernet.generate_key()
+fernet = Fernet(fernet_key.encode() if isinstance(fernet_key, str) else fernet_key)
 
 def safe_decrypt(value):
     """Safely decrypt values and log failures."""
@@ -46,7 +33,19 @@ def safe_decrypt(value):
         return fernet.decrypt(value.encode()).decode()
     except Exception as e:
         print(f"❌ Decrypt failed: {e}")
-        return value  # fallback (encrypted string shown)
+        return value  # fallback
+
+# ------------------ CLOUDINARY CONFIG ------------------
+cloudinary_url = os.environ.get("CLOUDINARY_URL")
+if not cloudinary_url:
+    print("⚠ CLOUDINARY_URL not set. Cloudinary uploads will fail in production.")
+cloudinary.config(cloudinary_url=cloudinary_url)
+
+# ------------------ SQLITE PATH ------------------
+# Ensures SQLite path works on Railway and locally
+DB_PATH = os.path.join(os.path.dirname(__file__), "database/sites.db")
+
+
 
 # ------------------ ROUTES ------------------
 
@@ -525,4 +524,6 @@ def get_sites():
 
 # ------------------ RUN ------------------
 if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
     app.run(debug=True)
