@@ -1,14 +1,6 @@
-# Python
+.venv/
 __pycache__/
 *.pyc
-venv/
-.venv/
+secret_key
+database/sites.db
 .env
-*.env
-# DB + secrets
-backend/database/sites.db
-backend/secret_key
-/etc/greenray.env
-# IDE
-.vscode/
-.idea/
