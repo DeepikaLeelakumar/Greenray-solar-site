@@ -20,6 +20,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")  # fallback for loca
 # ------------------ FERNET ENCRYPTION ------------------
 # Load Fernet key from env variable (Railway) or generate for local dev
 fernet_key = os.environ.get("FERNET_KEY")
+
 if not fernet_key:
     print("⚠ FERNET_KEY not set. Generating temporary key for local dev.")
     fernet_key = Fernet.generate_key()
@@ -526,4 +527,4 @@ def get_sites():
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=port)
