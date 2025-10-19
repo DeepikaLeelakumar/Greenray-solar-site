@@ -14,17 +14,18 @@ def generate_password(length=8):
 
 
 app = Flask(__name__)
-# Flask secret key (sessions, cookies)
-app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")  # fallback for local dev
-
+# ------------------ FLASK SECRET KEY ------------------
+# For sessions/cookies
+app.SECRET_KEY = os.environ.get("SECRET_KEY")
+if not app.SECRET_KEY:
+    raise Exception("⚠ SECRET_KEY not set in environment! Add it in Railway Shared Variables.")
+    
 # ------------------ FERNET ENCRYPTION ------------------
-# Load Fernet key from env variable (Railway) or generate for local dev
-fernet_key = os.environ.get("FERNET_KEY")
-
-if not fernet_key:
-    print("⚠ FERNET_KEY not set. Generating temporary key for local dev.")
-    fernet_key = Fernet.generate_key()
-fernet = Fernet(fernet_key.encode() if isinstance(fernet_key, str) else fernet_key)
+FERNET_KEY = os.environ.get("FERNET_KEY")
+if not FERNET_KEY:
+    raise Exception("⚠ FERNET_KEY not set in environment! Add your existing secret_key contents to Railway.")
+    
+fernet = Fernet(FERNET_KEY.encode())
 
 def safe_decrypt(value):
     """Safely decrypt values and log failures."""
@@ -37,11 +38,11 @@ def safe_decrypt(value):
         return value  # fallback
 
 # ------------------ CLOUDINARY CONFIG ------------------
-cloudinary_url = os.environ.get("CLOUDINARY_URL")
-if not cloudinary_url:
-    print("⚠ CLOUDINARY_URL not set. Cloudinary uploads will fail in production.")
-cloudinary.config(cloudinary_url=cloudinary_url)
-
+CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL")
+if not CLOUDINARY_URL:
+    raise Exception("⚠ CLOUDINARY_URL not set! Add it to Railway Shared Variables.")
+    
+cloudinary.config(cloudinary_url=CLOUDINARY_URL)
 # ------------------ SQLITE PATH ------------------
 # Ensures SQLite path works on Railway and locally
 DB_PATH = os.path.join(os.path.dirname(__file__), "database/sites.db")
