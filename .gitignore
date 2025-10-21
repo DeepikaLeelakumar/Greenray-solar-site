@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python
 __pycache__/
 *.pyc
@@ -12,3 +13,10 @@ backend/secret_key
 # IDE
 .vscode/
 .idea/
+=======
+venv/ 
+__pycache__/ 
+*.pyc 
+*.db 
+.env 
+>>>>>>> recover-old
