@@ -59,7 +59,7 @@
         .checkbox-group {
             text-align: left;
             margin-bottom: 20px;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto; /* scroll if too many sites */
             padding: 10px;
             border: 1px solid #ddd;
@@ -77,6 +77,9 @@
             transform: scale(1.2);
             cursor: pointer;
         }
+        .checkbox-group strong {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -93,16 +96,43 @@
 
            <label>Assign Sites:</label>
            <div class="checkbox-group">
-             {% for site in sites %}
+               <!-- Select All checkbox -->
                <label>
-                   <input type="checkbox" name="site_id" value="{{ site[0] }}">
-                   {{ site[1] }}
+                   <input type="checkbox" id="select_all">
+                   <strong>Select All</strong>
                </label>
-             {% endfor %}
+
+               {% for site in sites %}
+                 <label>
+                     <input type="checkbox" class="site_checkbox" name="site_id" value="{{ site[0] }}">
+                     {{ site[1] }}
+                 </label>
+               {% endfor %}
            </div>
 
            <button type="submit">Assign Selected Sites</button>
         </form>
     </div>
+
+    <script>
+        const selectAll = document.getElementById('select_all');
+        const checkboxes = document.querySelectorAll('.site_checkbox');
+
+        // Select / Deselect all
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+        });
+
+        // Sync Select All with individual checkboxes
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (!cb.checked) {
+                    selectAll.checked = false;
+                } else if (Array.from(checkboxes).every(chk => chk.checked)) {
+                    selectAll.checked = true;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
